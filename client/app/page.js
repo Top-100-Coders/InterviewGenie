@@ -13,10 +13,10 @@ export default function Home() {
   const [message, setMessage] = useState(null);
   const [prevChats, setPrevChats] = useState([]);
   const [currentTitle, setCurrentTitle] = useState([]);
-  
+  const [role,setRole]=useState('')
+
   const inputRef = useRef(null);
   const containerRef = useRef(null);
-
 
   useEffect(() => {
     if (!currentTitle && value && message) {
@@ -40,14 +40,16 @@ export default function Home() {
     }
   }, [message, currentTitle, value]);
 
-  const token = "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";
+  const token = process.env.TOKEN;
 
   const chat = async () => {
     const inputValue = inputRef.current.value;
+    const token = process.env.TOKEN;
     const options = {
       method: "POST",
       body: JSON.stringify({
         message: inputValue,
+        role
       }),
       headers: {
         Authorization: `Bearer ${token}`,
@@ -55,7 +57,7 @@ export default function Home() {
       },
     };
     try {
-      const resp = await fetch("http://localhost:5500/completions", options);
+      const resp = await fetch("http://localhost:5005/questions", options);
       const data = await resp.json();
       setMessage(data.choices[0].message);
       setValue(inputValue);
@@ -64,7 +66,8 @@ export default function Home() {
       console.log(error);
     }
 
-    inputRef.current.value = "";
+    inputRef.current.value = ""
+
   };
 
   const currentChat = prevChats.filter(
@@ -72,15 +75,28 @@ export default function Home() {
   );
   console.log(currentChat.length, "cht");
 
+  
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
+      console.log("CCCCC");
       container.scrollTop = container.scrollHeight;
     }
-  }, [message]);
+  }, [prevChats]);
 
+
+const handleKeyPress = (event) => {
+  if(event.key === "Enter") {
+    event.preventDefault();
+    chat()
+  }
+  }
+  const handleChange = (e)=>{
+    setValue(e.target.value)
+  }
+  console.log(role);
   return (
-    <main className="h-auto flex flex-col items-center" ref={containerRef}>
+    <main className="flex flex-col items-center max-h-min " ref={containerRef}>
       <div className="flex flex-col space-y-5 justify-center items-center mt-[15rem]">
         <Image src={logo} alt="AI LOGO" width={100} />
         {currentChat.length === 0 && (
@@ -89,12 +105,15 @@ export default function Home() {
               type="text"
               placeholder="JOB ROLE"
               className="px-3 py-1 rounded-lg"
-              // value={value}
+              value={value}
+              onChange={handleChange}
+              // onKeyDown={chat}
               ref={inputRef}
             />
             <button
               type="submit"
               className="rounded-[10px] text-white bg-[#375ac1] hover:bg-[#3766f28e] px-4 py-2"
+              // onKeyDown={chat}
               onClick={chat}
             >
               START INTERVIEW
@@ -103,16 +122,22 @@ export default function Home() {
         )}
       </div>
 
-      <div className="mb-[5rem] w-[90%] flex flex-col justify-center items-center">
+      <div className="mb-[15rem] w-[90%] flex flex-col justify-center items-center">
         {currentChat.map((chatMessage, index) => (
           <>
             <span className="text-white ml-[5rem] self-start mt-10 ">
               {chatMessage.role}
             </span>
             <div className="w-[90%] text-white bg-[#375ac1] h-auto p-10 rounded-lg  ">
-              <TypeIt options={{ speed: 50, cursor: false }}>
-                {chatMessage.content}
-              </TypeIt>
+              {chatMessage.role === "user" ? (
+                <TypeIt options={{ speed: 0, cursor: false }}>
+                  {chatMessage.content}
+                </TypeIt>
+              ) : (
+                <TypeIt options={{ speed: 50, cursor: false }}>
+                  {chatMessage.content}
+                </TypeIt>
+              )}
             </div>
           </>
         ))}

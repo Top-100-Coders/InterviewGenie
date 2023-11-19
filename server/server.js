@@ -1,10 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import OpenAi from 'openai'
-const port = 5500;
+import dotenv from "dotenv";
 
-const openai = new OpenAi({apiKey:"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"})
+dotenv.config();
 
+const port =5005;
+const apiKey = process.env.API_KEY
+
+const openai = new OpenAi({apiKey: apiKey})
+
+const token = process.env.API_KEY
 const app = express();
 app.use(express.json());
 
@@ -15,18 +21,18 @@ app.use(cors({
     credentials: true, // Allow sending cookies and credentials with requests, // Respond with 204 No Content for OPTIONS requests
     allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization', // Specify allowed headers
 }))
-const token = "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";
-app.post('/completions', async(req, res) => {
+app.post('/questions', async(req, res) => {
+    const {message,role}=req.body
+    console.log(role);
     const options={
         method:"POST",
-        
         headers:{
             "Authorization":`Bearer ${token}`,
             "Content-Type":"application/json"
         },
         body: JSON.stringify({
             model:"gpt-3.5-turbo",
-            messages:[{role:"system",content:"I want you to act as an interviewer. I will be the candidate and you will ask me theinterview questions for the position reactjs developer. I want you to only reply as the interviewer.Do not write all the conservation at once. I want you to only do the interview with me. Ask me the questions and wait for my answers. Do not write explanations. Ask me the questions one by one like an interviewer does and wait for my answers. My first sentence is Hi"},{role:"user",content: req.body.message,  }],
+            messages:[{role:"system",content:`I want you to act as an interviewer. I will be the candidate and you will ask me the interview questions for the position of ReactJS Developer. I want you to only reply as the interviewer.Do not write all the conservation at once. I want you to only do the interview with me. Ask me the questions and wait for my answers. Do not write explanations. Ask me the questions one by one like an interviewer does and wait for my answers. My first sentence is Hi`},{role:"user",content: message,  }],
             max_tokens:100,
         })
     }
