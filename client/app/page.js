@@ -103,7 +103,7 @@ const handleKeyPress = (event) => {
           <>
             <input
               type="text"
-              placeholder="JOB ROLE"
+              placeholder="ARE YOU READY? "
               className="px-3 py-1 rounded-lg"
               value={value}
               onChange={handleChange}
